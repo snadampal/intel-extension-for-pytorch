@@ -1,7 +1,11 @@
 // Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 #include <ATen/Parallel.h>
 #include <c10/util/Exception.h>
+
+#if !defined(__aarch64__)
 #include <immintrin.h>
+#endif
+
 #include <torch/csrc/autograd/function.h>
 #include <algorithm>
 #include "csrc/autocast/autocast_mode.h"

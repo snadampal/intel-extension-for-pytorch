@@ -2,7 +2,9 @@
 #include <stdint.h>
 
 #if defined(__GNUC__)
+#if !defined(__aarch64__)
 #include <cpuid.h>
+#endif
 #define __forceinline __attribute__((always_inline)) inline
 #elif defined(_MSC_VER)
 #include <intrin.h>
@@ -25,7 +27,9 @@ __forceinline void read_cpuid(
     uint32_t* p_edx) {
   int reg_data[4] = {0};
 #if defined(__GNUC__)
+#if !defined(__aarch64__)
   __cpuid(func_id, reg_data[0], reg_data[1], reg_data[2], reg_data[3]);
+#endif
 #elif defined(_MSC_VER)
   __cpuid(reg_data, func_id);
 #endif
@@ -44,8 +48,10 @@ __forceinline void read_cpuidex(
     uint32_t* p_edx) {
   int reg_data[4] = {0};
 #if defined(__GNUC__)
+#if !defined(__aarch64__)
   __cpuid_count(
       func_id, sub_func_id, reg_data[0], reg_data[1], reg_data[2], reg_data[3]);
+#endif
 #elif defined(_MSC_VER)
   __cpuidex(reg_data, func_id, sub_func_id);
 #endif

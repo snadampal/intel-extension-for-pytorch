@@ -11,8 +11,8 @@ else(MSVC)
   endif()
 endif(MSVC)
 
-file(GLOB_RECURSE cpu_kernel_cpp_in "${PROJECT_SOURCE_DIR}/intel_extension_for_pytorch/csrc/aten/cpu/kernels/*.cpp")
-list(APPEND DPCPP_ISA_SRCS_ORIGIN ${cpu_kernel_cpp_in})
+#file(GLOB_RECURSE cpu_kernel_cpp_in "${PROJECT_SOURCE_DIR}/intel_extension_for_pytorch/csrc/aten/cpu/kernels/*.cpp")
+#list(APPEND DPCPP_ISA_SRCS_ORIGIN ${cpu_kernel_cpp_in})
 
 # foreach(file_path ${cpu_kernel_cpp_in})
 #   message(${file_path})

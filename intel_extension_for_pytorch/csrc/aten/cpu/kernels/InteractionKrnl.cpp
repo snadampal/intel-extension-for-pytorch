@@ -468,6 +468,7 @@ inline std::vector<at::Tensor> _interaction_backward<at::BFloat16>(
   TORCH_INTERNAL_ASSERT_DEBUG_ONLY(grad_out.is_contiguous());
   IPEX_RECORD_FUNCTION(
       "_interaction_backward_bfloat16", c10::ArrayRef<c10::IValue>({}));
+#if !defined(__aarch64__)
   int32_t total_feature_size = 0;
   int64_t batch_size = input[0].sizes()[0];
   int32_t vector_size = input[0].sizes()[1];
@@ -621,6 +622,7 @@ inline std::vector<at::Tensor> _interaction_backward<at::BFloat16>(
       }
     }
   });
+#endif
   return output;
 }
 #endif
@@ -768,6 +770,7 @@ at::Tensor dil_qinteraction_kernel_impl(
   float dense_scale = in_scales[0] / output_scale;
 
   at::parallel_for(0, batch_size, 0, [&](int64_t start, int64_t end) {
+#if !defined(__aarch64__)
     __m512i cat_buf[aligned_off] __attribute__((aligned(64)));
     __m512i convert_to_s16_buf[vector_nums * 4] __attribute__((aligned(64)));
     std::vector<int8_t*> input_addr(vector_nums);
@@ -803,6 +806,7 @@ at::Tensor dil_qinteraction_kernel_impl(
       _interaction_s8s8_scale_s32s8(
           flat_buf, input_addr, vector_nums, vector_size, out_in_scales);
     }
+#endif
   });
 
   return output;

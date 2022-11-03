@@ -49,6 +49,7 @@ inline std::tuple<at::BFloat16, at::BFloat16> unpack_float_bfloat16(float a) {
 inline std::tuple<Vectorized<float>, Vectorized<float>> pack_bfloat16_float(
     const Vectorized<at::BFloat16>& a,
     const Vectorized<at::BFloat16>& b) {
+#if !defined(__aarch64__)
   __m256i a0 = _mm256_cvtepu16_epi32(_mm256_extractf128_si256(__m256i(a), 0));
   __m256i a1 = _mm256_cvtepu16_epi32(_mm256_extractf128_si256(__m256i(a), 1));
   __m256i b0 = _mm256_cvtepu16_epi32(_mm256_extractf128_si256(__m256i(b), 0));
@@ -58,10 +59,12 @@ inline std::tuple<Vectorized<float>, Vectorized<float>> pack_bfloat16_float(
   __m256 y1 =
       _mm256_castsi256_ps(_mm256_add_epi32(_mm256_slli_epi32(a1, 16), b1));
   return std::make_tuple(y0, y1);
+#endif
 }
 
 inline std::tuple<Vectorized<at::BFloat16>, Vectorized<at::BFloat16>>
 unpack_float_bfloat16(const Vectorized<float>& a, const Vectorized<float>& b) {
+#if !defined(__aarch64__)
   __m256i x0 = _mm256_castps_si256(__m256(a));
   __m256i x1 = _mm256_castps_si256(__m256(b));
   __m256i x0_hi = _mm256_srli_epi32(x0, 16);
@@ -76,6 +79,7 @@ unpack_float_bfloat16(const Vectorized<float>& a, const Vectorized<float>& b) {
   __m256i y1 = _mm256_packus_epi32(x0_lo, x1_lo);
   y1 = _mm256_permute4x64_epi64(y1, 0xd8);
   return std::make_tuple(y0, y1);
+#endif
 }
 } // namespace CPU_CAPABILITY
 } // namespace vec

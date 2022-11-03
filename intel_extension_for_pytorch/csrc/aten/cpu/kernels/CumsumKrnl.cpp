@@ -6,8 +6,10 @@
 #include <ATen/native/TensorIterator.h>
 
 #include <csrc/aten/cpu/Cumsum.h>
-
+#if !defined(__aarch64__)
 #include <immintrin.h>
+#endif
+
 #include "csrc/utils/ipex_op_profile.h"
 
 namespace torch_ipex {
@@ -33,6 +35,7 @@ inline void prefix_sum<int64_t>(
     int64_t init,
     int64_t n) {
   int64_t i;
+#if !defined(__aarch64__)
   __m256i offset = _mm256_set1_epi64x(init);
   __m256i zero = _mm256_setzero_si256();
   for (i = 0; i <= (n - Vectorized<int64_t>::size());
@@ -60,6 +63,7 @@ inline void prefix_sum<int64_t>(
     offset_v += src[i];
     dst[i] = offset_v;
   }
+#endif
 }
 
 inline int64_t divup(int64_t x, int64_t y) {

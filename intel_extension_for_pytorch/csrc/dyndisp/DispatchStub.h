@@ -280,6 +280,12 @@ ToDo: Fix warning: "REGISTER_HIP_DISPATCH" redefined to stock pytorch.
       name, fn);
 */
 
+#if defined(__aarch64__)
+//TODO: check why DEFAULT cpu capability is not picked for non AVX devices.
+//then remove this hardcoding
+#define CPU_CAPABILITY DEFAULT
+#endif
+
 // NB: This macro must be used in an actual 'cu' file; if you try using
 // it from a 'cpp' file it will not work!
 #if defined(__CUDACC__)

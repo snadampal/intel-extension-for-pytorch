@@ -10,7 +10,7 @@ def check_minimal_isa_support():
             cpu_info_command = "cat {}".format(cpu_info_path)
             all_sub_cpu_info = subprocess.getoutput(cpu_info_command).strip()
             for sub_cpu_info in all_sub_cpu_info.split("\n"):
-                if sub_cpu_info.startswith("flags"):
+                if sub_cpu_info.startswith("flags") or sub_cpu_info.startswith("Features"):
                     cpu_flags = sub_cpu_info.replace("\t", '').upper().split(":")
                     assert len(cpu_flags) >= 2
                     all_cpu_flags = cpu_flags[1].split(" ")
@@ -23,11 +23,12 @@ def check_minimal_isa_support():
     def check_avx2_support():
         cpu_flags = get_cpu_info()
         minimal_binary_isa = "AVX2"
-        if minimal_binary_isa not in cpu_flags:
-            return False
+        minimal_aarch64_binary_isa = "BF16"
+        if minimal_binary_isa not in cpu_flags and minimal_aarch64_binary_isa not in cpu_flags:
+           return False
 
         return True
 
-    err_msg = "ERROR! Intel® Extension for PyTorch* only works on machines with instruction sets equal or newer than AVX2, which are not detected on the current machine."
+    err_msg = "ERROR! Intel® Extension for PyTorch* only works on machines with instruction sets equal or newer than AVX2 for x86 and BF16 for aarch64, which are not detected on the current machine."
     if not check_avx2_support():
         sys.exit(err_msg)

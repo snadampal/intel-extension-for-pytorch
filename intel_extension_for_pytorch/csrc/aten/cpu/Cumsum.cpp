@@ -5,7 +5,9 @@
 #include <ATen/cpu/vec/vec.h>
 #include <ATen/native/ReduceOpsUtils.h>
 #include <ATen/native/TensorIterator.h>
+#if !defined(__aarch64__)
 #include <immintrin.h>
+#endif
 
 namespace torch_ipex {
 namespace cpu {

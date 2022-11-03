@@ -48,6 +48,29 @@ inline void transpose_kernel_8x8<float>(
     int64_t ld_src,
     float* dst,
     int64_t ld_dst) {
+#if defined(__aarch64__)
+   // process 4x4 elememts per iteration
+   for (int x =0; x < 8; x += 4) {
+      for (int y = 0; y < 8; y += 4) {
+        const float32x4_t row0 = vld1q_f32(&src[(x+0) * ld_src] + y);
+        const float32x4_t row1 = vld1q_f32(&src[(x+1) * ld_src] + y);
+        const float32x4_t row2 = vld1q_f32(&src[(x+2) * ld_src] + y);
+        const float32x4_t row3 = vld1q_f32(&src[(x+3) * ld_src] + y);
+
+        // Transpose 2x2
+        const float32x2x2_t k0_f32 = vtrn_f32(vget_low_f32(row0), vget_low_f32(row1));
+        const float32x2x2_t k1_f32 = vtrn_f32(vget_high_f32(row2), vget_high_f32(row3));
+        const float32x2x2_t k2_f32 = vtrn_f32(vget_high_f32(row0), vget_high_f32(row1));
+        const float32x2x2_t k3_f32 = vtrn_f32(vget_low_f32(row2), vget_low_f32(row3));
+
+        // Swap block 01 with block 10 and store
+        vst1q_f32(&dst[(y+0) * ld_dst] + x, vcombine_f32(k0_f32.val[0], k3_f32.val[0]));
+        vst1q_f32(&dst[(y+1) * ld_dst] + x, vcombine_f32(k0_f32.val[1], k3_f32.val[1]));
+        vst1q_f32(&dst[(y+2) * ld_dst] + x, vcombine_f32(k2_f32.val[0], k1_f32.val[0]));
+        vst1q_f32(&dst[(y+3) * ld_dst] + x, vcombine_f32(k2_f32.val[1], k1_f32.val[1]));
+      }
+   }
+#else
   // inputs:
   //   a = {a0, a1, a2, a3, a4, a5, a6, a7}
   //   b = {b0, b1, b2, b3, b4, b5, b6, b7}
@@ -128,6 +151,7 @@ inline void transpose_kernel_8x8<float>(
   _mm256_storeu_ps(&dst[5 * ld_dst], f);
   _mm256_storeu_ps(&dst[6 * ld_dst], g);
   _mm256_storeu_ps(&dst[7 * ld_dst], h);
+#endif
 }
 
 template <>
@@ -136,6 +160,7 @@ inline void transpose_kernel_8x8<at::BFloat16>(
     int64_t ld_src,
     at::BFloat16* dst,
     int64_t ld_dst) {
+#if !defined(__aarch64__)
   // inputs:
   //   a = {a0, a1, a2, a3, a4, a5, a6, a7}
   //   b = {b0, b1, b2, b3, b4, b5, b6, b7}
@@ -224,6 +249,7 @@ inline void transpose_kernel_8x8<at::BFloat16>(
   _mm_storeu_si128(reinterpret_cast<__m128i*>(&dst[5 * ld_dst]), f);
   _mm_storeu_si128(reinterpret_cast<__m128i*>(&dst[6 * ld_dst]), g);
   _mm_storeu_si128(reinterpret_cast<__m128i*>(&dst[7 * ld_dst]), h);
+#endif
 }
 
 static void copy_kernel(at::TensorIterator& iter, bool non_blocking) {
